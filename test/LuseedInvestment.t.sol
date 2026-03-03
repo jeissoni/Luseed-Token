@@ -50,7 +50,7 @@ contract LuseedInvestmentTest is Test {
         token.setAuthorized(buyer, true);
 
         // Enviar LST al contrato de inversión (para la venta)
-        token.transfer(address(investment), 150_000 * 10 ** 18);
+        assertTrue(token.transfer(address(investment), 150_000 * 10 ** 18));
 
         vm.stopPrank();
 
@@ -182,7 +182,7 @@ contract LuseedInvestmentTest is Test {
         LuseedInvestment smallSale = new LuseedInvestment(owner, address(token), address(usdc), treasury);
         token.setAuthorized(address(smallSale), true);
         token.setAuthorized(buyer, true);
-        token.transfer(address(smallSale), 500 * 10 ** 18);
+        assertTrue(token.transfer(address(smallSale), 500 * 10 ** 18));
         vm.stopPrank();
 
         usdc.mint(buyer, USDC_10K);
@@ -229,7 +229,7 @@ contract LuseedInvestmentTest is Test {
     /// @notice Verifica que withdrawUsdc emite el evento UsdcWithdrawn con los parámetros correctos.
     function test_WithdrawUsdc_EmitsUsdcWithdrawn() public {
         vm.prank(buyer);
-        usdc.transfer(address(investment), 500 * 10 ** 6);
+        assertTrue(usdc.transfer(address(investment), 500 * 10 ** 6));
 
         vm.prank(owner);
         vm.expectEmit(true, true, true, true);
@@ -241,7 +241,7 @@ contract LuseedInvestmentTest is Test {
     function test_WithdrawUsdc_OnlyOwner() public {
         // Enviar USDC por error al contrato
         vm.prank(buyer);
-        usdc.transfer(address(investment), 1000 * 10 ** 6);
+        assertTrue(usdc.transfer(address(investment), 1000 * 10 ** 6));
 
         vm.prank(buyer);
         vm.expectRevert();
