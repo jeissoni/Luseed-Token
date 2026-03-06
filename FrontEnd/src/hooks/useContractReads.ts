@@ -143,7 +143,7 @@ export function formatRate(bps: bigint): string {
 
 export function formatDuration(seconds: bigint): string {
   const days = Number(seconds) / 86400;
-  if (days >= 365) return `${(days / 365).toFixed(1)} a\u00f1os`;
+  if (days >= 365) return `${(days / 365).toFixed(1)} años`;
   if (days >= 30) return `${(days / 30).toFixed(0)} meses`;
-  return `${days.toFixed(0)} d\u00edas`;
+  return `${days.toFixed(0)} días`;
 }

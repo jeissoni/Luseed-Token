@@ -51,7 +51,7 @@ export default function Investor({ address }: InvestorProps) {
       });
       await publicClient.waitForTransactionReceipt({ hash: investHash });
 
-      setTxStatus("Inversi\u00f3n exitosa!");
+      setTxStatus("Inversión exitosa!");
       setInvestAmount("");
       refreshNotes();
       protocol.refresh();
@@ -113,7 +113,7 @@ export default function Investor({ address }: InvestorProps) {
   async function handleTransfer() {
     if (!address || !transferNoteId || !transferTo || !transferAmount) return;
     setBusy(true);
-    setTxStatus("Transfiriendo posici\u00f3n...");
+    setTxStatus("Transfiriendo posición...");
     try {
       const hash = await writeContract({
         account: address,
@@ -155,7 +155,7 @@ export default function Investor({ address }: InvestorProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card title="Tasa Actual">
           <p className="text-2xl font-bold text-luseed-400">{formatRate(protocol.currentRate)}</p>
-          <p className="text-xs text-gray-500 mt-1">anual, inter\u00e9s simple</p>
+          <p className="text-xs text-gray-500 mt-1">anual, interés simple</p>
         </Card>
         <Card title="Plazo">
           <p className="text-2xl font-bold">{formatDuration(protocol.termDuration)}</p>
@@ -173,7 +173,7 @@ export default function Investor({ address }: InvestorProps) {
         {!address ? (
           <p className="text-gray-500">Conecta tu wallet para invertir.</p>
         ) : !protocol.investmentOpen ? (
-          <p className="text-gray-500">La ventana de inversi\u00f3n est\u00e1 cerrada.</p>
+          <p className="text-gray-500">La ventana de inversión está cerrada.</p>
         ) : (
           <div className="flex gap-3 items-end">
             <div className="flex-1">
@@ -182,7 +182,7 @@ export default function Investor({ address }: InvestorProps) {
                 type="number"
                 value={investAmount}
                 onChange={(e) => setInvestAmount(e.target.value)}
-                placeholder={`M\u00ednimo ${formatUsdc(protocol.minInvestment)}`}
+                placeholder={`Mínimo ${formatUsdc(protocol.minInvestment)}`}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luseed-500"
               />
             </div>
@@ -198,13 +198,13 @@ export default function Investor({ address }: InvestorProps) {
       </Card>
 
       {/* Notes */}
-      <Card title="Mis Notas de Inversi\u00f3n">
+      <Card title="Mis Notas de Inversión">
         {!address ? (
           <p className="text-gray-500">Conecta tu wallet.</p>
         ) : notesLoading ? (
           <p className="text-gray-500">Cargando...</p>
         ) : notes.length === 0 ? (
-          <p className="text-gray-500">No tienes notas de inversi\u00f3n.</p>
+          <p className="text-gray-500">No tienes notas de inversión.</p>
         ) : (
           <div className="space-y-4">
             {notes.map((note) => {
@@ -256,7 +256,7 @@ export default function Investor({ address }: InvestorProps) {
       </Card>
 
       {/* Transfer */}
-      <Card title="Transferir Posici\u00f3n">
+      <Card title="Transferir Posición">
         {!address ? (
           <p className="text-gray-500">Conecta tu wallet.</p>
         ) : (

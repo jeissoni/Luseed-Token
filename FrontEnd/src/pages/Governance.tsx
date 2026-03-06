@@ -46,7 +46,7 @@ export default function Governance({ address }: GovernanceProps) {
     try {
       const hash = await fn();
       await publicClient.waitForTransactionReceipt({ hash });
-      setTxStatus("Transacci\u00f3n exitosa!");
+      setTxStatus("Transacción exitosa!");
     } catch (e) {
       setTxStatus(`Error: ${e instanceof Error ? e.message : "Unknown"}`);
     } finally {
@@ -174,7 +174,7 @@ export default function Governance({ address }: GovernanceProps) {
       {/* Create Proposal */}
       <Card title="Crear Propuesta">
         <p className="text-xs text-gray-500 mb-3">
-          Ejemplo: proponer abrir la ventana de inversi\u00f3n en el PromissoryNote.
+          Ejemplo: proponer abrir la ventana de inversión en el PromissoryNote.
         </p>
         <div className="grid grid-cols-1 gap-3">
           <div>
@@ -188,11 +188,11 @@ export default function Governance({ address }: GovernanceProps) {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Descripci\u00f3n</label>
+            <label className="block text-sm text-gray-400 mb-1">Descripción</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Abrir ventana de inversi\u00f3n..."
+              placeholder="Abrir ventana de inversión..."
               rows={2}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luseed-500 resize-none"
             />
@@ -244,7 +244,7 @@ export default function Governance({ address }: GovernanceProps) {
             >
               <option value="1">A favor</option>
               <option value="0">En contra</option>
-              <option value="2">Abstenci\u00f3n</option>
+              <option value="2">Abstención</option>
             </select>
           </div>
           <button

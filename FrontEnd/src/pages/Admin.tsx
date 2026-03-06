@@ -30,7 +30,7 @@ export default function Admin({ address }: AdminProps) {
     try {
       const hash = await fn();
       await publicClient.waitForTransactionReceipt({ hash });
-      setTxStatus("Transacci\u00f3n exitosa!");
+      setTxStatus("Transacción exitosa!");
       protocol.refresh();
     } catch (e) {
       setTxStatus(`Error: ${e instanceof Error ? e.message : "Unknown"}`);
@@ -43,7 +43,7 @@ export default function Admin({ address }: AdminProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Panel de Administraci\u00f3n</h1>
+        <h1 className="text-2xl font-bold">Panel de Administración</h1>
         <StatusBadge active={protocol.investmentOpen} labelOn="Ventana Abierta" labelOff="Ventana Cerrada" />
       </div>
 
@@ -69,7 +69,7 @@ export default function Admin({ address }: AdminProps) {
       </div>
 
       {/* Investment Window */}
-      <Card title="Ventana de Inversi\u00f3n">
+      <Card title="Ventana de Inversión">
         <div className="flex items-center gap-4">
           <p className="text-sm text-gray-400">Estado actual: {protocol.investmentOpen ? "Abierta" : "Cerrada"}</p>
           <button
@@ -93,7 +93,7 @@ export default function Admin({ address }: AdminProps) {
       </Card>
 
       {/* Rate */}
-      <Card title="Cambiar Tasa de Inter\u00e9s">
+      <Card title="Cambiar Tasa de Interés">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Nueva tasa (%)</label>
@@ -141,7 +141,7 @@ export default function Admin({ address }: AdminProps) {
       <Card title="Cambiar Plazo (notas nuevas)">
         <div className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="block text-sm text-gray-400 mb-1">Nuevo plazo (d\u00edas)</label>
+            <label className="block text-sm text-gray-400 mb-1">Nuevo plazo (días)</label>
             <input
               type="number"
               value={newTermDays}
@@ -174,7 +174,7 @@ export default function Admin({ address }: AdminProps) {
       <Card title="Whitelist KYC">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Direcci\u00f3n</label>
+            <label className="block text-sm text-gray-400 mb-1">Dirección</label>
             <input
               type="text"
               value={whitelistAddr}
@@ -184,7 +184,7 @@ export default function Admin({ address }: AdminProps) {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Acci\u00f3n</label>
+            <label className="block text-sm text-gray-400 mb-1">Acción</label>
             <select
               value={whitelistStatus ? "add" : "remove"}
               onChange={(e) => setWhitelistStatus(e.target.value === "add")}
@@ -250,7 +250,7 @@ export default function Admin({ address }: AdminProps) {
                   args: [amount],
                 });
                 await publicClient.waitForTransactionReceipt({ hash });
-                setTxStatus("Dep\u00f3sito exitoso!");
+                setTxStatus("Depósito exitoso!");
                 setDepositAmount("");
                 protocol.refresh();
               } catch (e) {
