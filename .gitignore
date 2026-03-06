@@ -1,14 +1,38 @@
-# Compiler files
+# Foundry — compilación y artefactos
 cache/
 out/
 
-# Ignores development broadcast logs
+# Foundry — broadcast logs (solo local/dry-run)
 !/broadcast
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 
-# Docs
+# Foundry — dependencias (se reinstalan con forge install)
+/Blockchain/lib/
+
+# Foundry — lock file
+foundry.lock
+
+# Docs generados
 docs/
 
-# Dotenv file
+# Dotenv
 .env
+
+# Coverage
+lcov.info
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Frontend
+FrontEnd/node_modules/
+FrontEnd/dist/
+FrontEnd/.env
+FrontEnd/*.local
