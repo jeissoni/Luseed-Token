@@ -18,6 +18,12 @@ export default function Governance({ address }: GovernanceProps) {
   const [busy, setBusy] = useState(false);
   const [txStatus, setTxStatus] = useState("");
 
+  // Sepolia a veces rechaza gas limits > cap del bloque.
+  // Este valor está por debajo del cap típico (16.777.216) para evitar "gas limit too high".
+  const PROPOSE_GAS_LIMIT = 16_000_000n;
+  // Para castVote usamos un gas también por debajo del cap.
+  const CAST_VOTE_GAS_LIMIT = 15_000_000n;
+
   // Proposal creation
   const [targetAddr, setTargetAddr] = useState("");
   const [description, setDescription] = useState("");
@@ -212,6 +218,7 @@ export default function Governance({ address }: GovernanceProps) {
                   abi: luseedDAOAbi,
                   functionName: "propose",
                   args: [[target], [0n], [calldata], description || "Proposal"],
+                  gas: PROPOSE_GAS_LIMIT,
                 })
               );
             }}
@@ -256,6 +263,7 @@ export default function Governance({ address }: GovernanceProps) {
                   abi: luseedDAOAbi,
                   functionName: "castVote",
                   args: [BigInt(voteProposalId), parseInt(voteSupport)],
+                  gas: CAST_VOTE_GAS_LIMIT,
                 })
               )
             }
