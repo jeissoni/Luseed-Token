@@ -34,9 +34,16 @@ export async function writeContract<T extends Abi>(params: {
   abi: T;
   functionName: string;
   args?: readonly unknown[];
+  /**
+   * Override opcional de gas.
+   * Se usa cuando el provider rechaza un gas limit por estar por encima del cap del bloque.
+   */
+  gas?: bigint | number;
 }): Promise<`0x${string}`> {
+  const { gas, ...rest } = params;
   return walletClient().writeContract({
-    ...params,
+    ...rest,
+    gas,
     chain,
   } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 }
