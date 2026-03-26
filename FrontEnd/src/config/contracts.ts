@@ -4,6 +4,7 @@ export const addresses = {
   promissoryNote: (import.meta.env.VITE_PROMISSORY_NOTE_ADDRESS ?? "0x") as Address,
   luseedToken: (import.meta.env.VITE_LUSEED_TOKEN_ADDRESS ?? "0x") as Address,
   luseedDAO: (import.meta.env.VITE_LUSEED_DAO_ADDRESS ?? "0x") as Address,
+  luseedInvestment: (import.meta.env.VITE_LUSEED_INVESTMENT_ADDRESS ?? "0x") as Address,
   usdc: (import.meta.env.VITE_USDC_ADDRESS ?? "0x") as Address,
 };
 
@@ -68,12 +69,22 @@ export const luseedDAOAbi = parseAbi([
   "function castVote(uint256 proposalId, uint8 support) returns (uint256 balance)",
   "function execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) returns (uint256 proposalId)",
   "function state(uint256 proposalId) view returns (uint8)",
+  // Errors used by OpenZeppelin Governor (needed so viem can decode reverts)
+  "error GovernorNonexistentProposal(uint256 proposalId)",
   "function votingDelay() view returns (uint256)",
   "function votingPeriod() view returns (uint256)",
   "function proposalThreshold() view returns (uint256)",
   "function quorum(uint256 timepoint) view returns (uint256)",
   "function getVotes(address account, uint256 timepoint) view returns (uint256)",
   "function hasVoted(uint256 proposalId, address account) view returns (bool)",
+]);
+
+export const luseedInvestmentAbi = parseAbi([
+  "function buy(uint256 usdcAmount)",
+  "function quoteLstForUsdc(uint256 usdcAmount) external pure returns (uint256)",
+  "function remainingCap() external view returns (uint256)",
+  "function capReached() external view returns (bool)",
+  "function treasury() external view returns (address)",
 ]);
 
 export const PROPOSAL_STATES = [
