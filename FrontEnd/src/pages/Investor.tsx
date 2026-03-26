@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type Address, parseUnits } from "viem";
 import Card from "@/components/Card";
 import StatusBadge from "@/components/StatusBadge";
@@ -10,7 +10,13 @@ import {
   formatDuration,
 } from "@/hooks/useContractReads";
 import { publicClient, writeContract } from "@/config/client";
-import { addresses, promissoryNoteAbi, erc20Abi } from "@/config/contracts";
+import {
+  addresses,
+  promissoryNoteAbi,
+  erc20Abi,
+  luseedInvestmentAbi,
+  luseedTokenAbi,
+} from "@/config/contracts";
 
 interface InvestorProps {
   address: Address | null;
@@ -23,8 +29,73 @@ export default function Investor({ address }: InvestorProps) {
   const [transferNoteId, setTransferNoteId] = useState("");
   const [transferTo, setTransferTo] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
+  const [buyLstAmount, setBuyLstAmount] = useState("");
+  const [isTokenAuthorized, setIsTokenAuthorized] = useState<boolean | null>(null);
+  const [lstRemainingCap, setLstRemainingCap] = useState<bigint | null>(null);
+  const [lstExpected, setLstExpected] = useState<bigint | null>(null);
+  const [buyStatus, setBuyStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [txStatus, setTxStatus] = useState("");
+
+  // Constants del contrato LuseedInvestment (10_000 USDC -> 1_000 LST)
+  // Esto es solo para estimar; la compra real respeta el cap on-chain.
+  const USDC_PER_OFFER_RAW = 10_000n * 10n ** 6n; // 10,000 USDC con 6 decimales
+  const LST_PER_OFFER_RAW = 1_000n * 10n ** 18n; // 1,000 LST con 18 decimales
+
+  function estimateLstRaw(usdcRaw: bigint): bigint {
+    return (usdcRaw * LST_PER_OFFER_RAW) / USDC_PER_OFFER_RAW;
+  }
+
+  async function refreshBuySide() {
+    if (!address) return;
+    try {
+      const [authorized, remaining] = await Promise.all([
+        publicClient.readContract({
+          address: addresses.luseedToken,
+          abi: luseedTokenAbi,
+          functionName: "isAuthorized",
+          args: [address],
+        }),
+        publicClient.readContract({
+          address: addresses.luseedInvestment,
+          abi: luseedInvestmentAbi,
+          functionName: "remainingCap",
+        }),
+      ]);
+      setIsTokenAuthorized(authorized as boolean);
+      setLstRemainingCap(remaining as bigint);
+    } catch (e) {
+      console.error("Failed to refresh buy side:", e);
+      setIsTokenAuthorized(null);
+      setLstRemainingCap(null);
+    }
+  }
+
+  // Recalcular estimación local del LST esperado (sin llamadas RPC)
+  function recalcExpected() {
+    try {
+      if (!buyLstAmount) {
+        setLstExpected(null);
+        return;
+      }
+      const amountRaw = parseUnits(buyLstAmount, 6);
+      if (amountRaw === 0n) {
+        setLstExpected(null);
+        return;
+      }
+      setLstExpected(estimateLstRaw(amountRaw));
+    } catch {
+      setLstExpected(null);
+    }
+  }
+
+  useEffect(() => {
+    recalcExpected();
+  }, [buyLstAmount]);
+
+  useEffect(() => {
+    refreshBuySide();
+  }, [address]);
 
   async function handleInvest() {
     if (!address || !investAmount) return;
@@ -138,6 +209,52 @@ export default function Investor({ address }: InvestorProps) {
 
   const now = BigInt(Math.floor(Date.now() / 1000));
 
+  async function handleBuyLst() {
+    if (!address || !buyLstAmount) return;
+    setBusy(true);
+    setBuyStatus("Preparando compra...");
+    try {
+      if (isTokenAuthorized === false) {
+        setBuyStatus("Tu cuenta NO está autorizada (KYC) para recibir LST.");
+        return;
+      }
+
+      const amount = parseUnits(buyLstAmount, 6);
+
+      setBuyStatus("Aprobando USDC...");
+      const approveHash = await writeContract({
+        account: address,
+        address: addresses.usdc,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [addresses.luseedInvestment, amount],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: approveHash });
+
+      setBuyStatus("Comprando LST...");
+      const buyHash = await writeContract({
+        account: address,
+        address: addresses.luseedInvestment,
+        abi: luseedInvestmentAbi,
+        functionName: "buy",
+        args: [amount],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: buyHash });
+
+      setBuyStatus("Compra exitosa!");
+      setBuyLstAmount("");
+      setLstExpected(null);
+      refreshNotes();
+      await refreshBuySide();
+      protocol.refresh();
+    } catch (e) {
+      setBuyStatus(`Error: ${e instanceof Error ? e.message : "Unknown"}`);
+    } finally {
+      setBusy(false);
+      setTimeout(() => setBuyStatus(""), 6000);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -150,6 +267,74 @@ export default function Investor({ address }: InvestorProps) {
           {txStatus}
         </div>
       )}
+
+      {/* Buy LST */}
+      <Card title="Comprar LST (con USDC)">
+        <div className="space-y-4">
+          {!address ? (
+            <p className="text-gray-500">Conecta tu wallet para comprar LST.</p>
+          ) : (
+            <>
+              <div className="flex gap-3 flex-wrap items-center">
+                <span className="text-sm text-gray-400">KYC (recibir LST):</span>
+                <span
+                  className={`text-sm font-medium ${
+                    isTokenAuthorized === null
+                      ? "text-gray-400"
+                      : isTokenAuthorized
+                        ? "text-luseed-400"
+                        : "text-red-400"
+                  }`}
+                >
+                  {isTokenAuthorized === null ? "—" : isTokenAuthorized ? "Autorizado" : "No autorizado"}
+                </span>
+              </div>
+
+              <div className="text-sm text-gray-400">
+                Cap restante:{" "}
+                <span className="font-semibold text-gray-100">
+                  {lstRemainingCap !== null ? (Number(lstRemainingCap) / 1e18).toLocaleString() : "—"} LST
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-gray-400 mb-1">Monto (USDC)</label>
+                  <input
+                    type="number"
+                    value={buyLstAmount}
+                    onChange={(e) => setBuyLstAmount(e.target.value)}
+                    onBlur={recalcExpected}
+                    placeholder="Ej: 2000"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luseed-500"
+                  />
+                </div>
+                <button
+                  onClick={handleBuyLst}
+                  disabled={busy || !buyLstAmount || isTokenAuthorized === false || (lstRemainingCap !== null && lstRemainingCap === 0n)}
+                  className="bg-luseed-600 hover:bg-luseed-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+                >
+                  Comprar LST
+                </button>
+              </div>
+
+              <div className="text-xs text-gray-500">
+                Estimación:{" "}
+                <span className="font-semibold text-gray-200">
+                  {lstExpected !== null ? (Number(lstExpected) / 1e18).toLocaleString() : "—"} LST
+                </span>
+                <div>Nota: el contrato puede tomar menos USDC si el cap limita la venta.</div>
+              </div>
+
+              {buyStatus && (
+                <div className={`p-3 rounded-lg text-sm ${buyStatus.startsWith("Error") ? "bg-red-900/30 text-red-400" : "bg-luseed-900/30 text-luseed-400"}`}>
+                  {buyStatus}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </Card>
 
       {/* Protocol Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
