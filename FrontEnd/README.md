@@ -2,6 +2,8 @@
 
 SPA para interactuar con los contratos de **VLP Hybrid DAO LLC** en Sepolia. Los activos subyacentes están en Colombia; la interfaz muestra montos en **pesos colombianos (COP)** con liquidación on-chain en USDC.
 
+📖 **Guía para usuarios finales:** [GUIA_USUARIO.md](./GUIA_USUARIO.md)
+
 ## Stack
 
 | Capa | Tecnología |
