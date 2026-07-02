@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { type Address, formatUnits } from "viem";
+import { type Address, formatUnits, parseUnits } from "viem";
 import { publicClient } from "@/config/client";
 import { addresses, promissoryNoteAbi, erc20Abi } from "@/config/contracts";
+import { USD_TO_COP_RATE } from "@/config/branding";
 
 export interface ProtocolState {
   investmentOpen: boolean;
@@ -135,6 +136,34 @@ export function formatUsdc(amount: bigint): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+/** Convierte unidades USDC (6 dec) a valor en COP usando la tasa configurada. */
+export function usdcRawToCop(amount: bigint): number {
+  const usd = Number(formatUnits(amount, 6));
+  return usd * USD_TO_COP_RATE;
+}
+
+/** Formatea un monto on-chain como pesos colombianos. */
+export function formatCop(amount: bigint): string {
+  return usdcRawToCop(amount).toLocaleString("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  });
+}
+
+/** Convierte un monto ingresado en COP a unidades USDC (6 dec) para transacciones on-chain. */
+export function parseCopToUsdcRaw(copAmount: string): bigint {
+  const cop = parseFloat(copAmount.replace(/,/g, ""));
+  if (isNaN(cop) || cop <= 0) throw new Error("Monto inválido");
+  const usd = cop / USD_TO_COP_RATE;
+  return parseUnits(usd.toFixed(6), 6);
+}
+
+/** Formatea COP para placeholders (sin decimales). */
+export function formatCopNumber(cop: number): string {
+  return cop.toLocaleString("es-CO", { maximumFractionDigits: 0 });
 }
 
 export function formatRate(bps: bigint): string {

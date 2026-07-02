@@ -1,10 +1,10 @@
-# Luseed Energy DAO
+# VLP Hybrid DAO LLC
 
-Repositorio del DAO de energía Luseed: token de gobernanza (LST), venta de tokens por USDC y gobernanza.
+Repositorio de **VLP Hybrid DAO LLC**: token de gobernanza (LST), notas de inversión y gobernanza on-chain. Los activos subyacentes están en **Colombia**; el frontend muestra montos en COP.
 
 ## Contexto (modelo operativo)
 
-- **Estructura legal**: Luseed opera bajo una **LLC**. Los **Managers** (socios) administran la LLC y operan la **DAO**.
+- **Estructura legal**: **VLP Hybrid DAO LLC**. Los **Managers** (socios) administran la LLC y operan la **DAO**.
 - **Inversionistas**: no forman parte de la DAO (gobernanza). Su relación económica se representa en un **contrato/posición de inversión (staking)** administrado por la DAO (ver “Pendiente”).
 - **Rampa/infra**: los inversionistas compran/operan USDC a través de **4 Rivers** (backend + KYC). En el FE se valida el usuario contra una cuenta de 4 Rivers.
 - **Distribución de retornos**: idealmente **automática**: el contrato de inversión dispersa USDC a la cuenta/wallet del usuario (visible en el FE; subyacente 4 Rivers) según tasas/retornos pactados (promissory note).
