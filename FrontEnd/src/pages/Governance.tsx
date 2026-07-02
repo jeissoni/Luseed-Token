@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { type Address, encodeFunctionData, keccak256, toHex } from "viem";
 import Card from "@/components/Card";
+import TxBanner from "@/components/TxBanner";
 import { publicClient, writeContract } from "@/config/client";
 import { addresses, luseedDAOAbi, luseedTokenAbi, erc20Abi, PROPOSAL_STATES } from "@/config/contracts";
 
@@ -52,9 +54,9 @@ export default function Governance({ address }: GovernanceProps) {
     try {
       const hash = await fn();
       await publicClient.waitForTransactionReceipt({ hash });
-      setTxStatus("Transacción exitosa!");
+      setTxStatus("Transacción exitosa.");
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "Unknown"}`);
+      setTxStatus(`Error: ${e instanceof Error ? e.message : "desconocido"}`);
     } finally {
       setBusy(false);
       setTimeout(() => setTxStatus(""), 5000);
@@ -91,7 +93,7 @@ export default function Governance({ address }: GovernanceProps) {
         description: PROPOSAL_STATES[state] ?? "Unknown",
       });
     } catch (e) {
-      setTxStatus(`Error: ${e instanceof Error ? e.message : "Unknown"}`);
+      setTxStatus(`Error: ${e instanceof Error ? e.message : "desconocido"}`);
     }
   }
 
@@ -108,16 +110,25 @@ export default function Governance({ address }: GovernanceProps) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Gobernanza</h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h1 className="text-2xl font-bold">Gobernanza</h1>
+        <Link
+          to="/managers"
+          className="text-sm text-luseed-400 hover:text-luseed-300 transition-colors"
+        >
+          ← Portal de socios
+        </Link>
+      </div>
 
-      {txStatus && (
-        <div className={`p-3 rounded-lg text-sm ${txStatus.startsWith("Error") ? "bg-red-900/30 text-red-400" : "bg-luseed-900/30 text-luseed-400"}`}>
-          {txStatus}
-        </div>
-      )}
+      <p className="text-sm text-gray-400">
+        Para managers con tokens de gobernanza (LST). Delega votos, crea propuestas y participa en
+        decisiones del DAO.
+      </p>
+
+      <TxBanner message={txStatus} />
 
       {/* Voting Power */}
-      <Card title="Tu Poder de Voto">
+      <Card title="Tu poder de voto">
         {!address ? (
           <p className="text-gray-500">Conecta tu wallet.</p>
         ) : (
@@ -131,12 +142,18 @@ export default function Governance({ address }: GovernanceProps) {
             {votingPower !== null && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">LST Balance</p>
-                  <p className="text-xl font-bold">{lstBalance !== null ? (Number(lstBalance) / 1e18).toLocaleString() : "—"}</p>
+                  <p className="text-sm text-gray-500">Saldo LST</p>
+                  <p className="text-xl font-bold">
+                    {lstBalance !== null
+                      ? (Number(lstBalance) / 1e18).toLocaleString("es-CO")
+                      : "—"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Poder de Voto (delegado)</p>
-                  <p className="text-xl font-bold text-luseed-400">{(Number(votingPower) / 1e18).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">Poder de voto (delegado)</p>
+                  <p className="text-xl font-bold text-luseed-400">
+                    {(Number(votingPower) / 1e18).toLocaleString("es-CO")}
+                  </p>
                 </div>
               </div>
             )}
@@ -145,7 +162,7 @@ export default function Governance({ address }: GovernanceProps) {
       </Card>
 
       {/* Delegate */}
-      <Card title="Delegar Votos">
+      <Card title="Delegar votos">
         <div className="flex gap-3 items-end">
           <div className="flex-1">
             <label className="block text-sm text-gray-400 mb-1">Delegar a (o a ti mismo)</label>
@@ -178,9 +195,9 @@ export default function Governance({ address }: GovernanceProps) {
       </Card>
 
       {/* Create Proposal */}
-      <Card title="Crear Propuesta">
+      <Card title="Crear propuesta">
         <p className="text-xs text-gray-500 mb-3">
-          Ejemplo: proponer abrir la ventana de inversión en el PromissoryNote.
+          Ejemplo: proponer abrir la ventana de inversión en el contrato de notas.
         </p>
         <div className="grid grid-cols-1 gap-3">
           <div>
@@ -225,7 +242,7 @@ export default function Governance({ address }: GovernanceProps) {
             disabled={busy || !address}
             className="bg-luseed-600 hover:bg-luseed-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
           >
-            Crear Propuesta
+            Crear propuesta
           </button>
         </div>
       </Card>
@@ -234,7 +251,7 @@ export default function Governance({ address }: GovernanceProps) {
       <Card title="Votar">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Proposal ID</label>
+            <label className="block text-sm text-gray-400 mb-1">ID de propuesta</label>
             <input
               type="text"
               value={voteProposalId}
@@ -276,13 +293,13 @@ export default function Governance({ address }: GovernanceProps) {
       </Card>
 
       {/* Execute */}
-      <Card title="Ejecutar Propuesta Aprobada">
+      <Card title="Ejecutar propuesta aprobada">
         <p className="text-xs text-gray-500 mb-3">
-          Solo se puede ejecutar si la propuesta fue aprobada (estado: Succeeded).
+          Solo se puede ejecutar si la propuesta fue aprobada (estado: Aprobada).
         </p>
         <div className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="block text-sm text-gray-400 mb-1">Proposal ID (para referencia)</label>
+            <label className="block text-sm text-gray-400 mb-1">ID de propuesta (referencia)</label>
             <input
               type="text"
               value={execProposalId}
@@ -318,10 +335,10 @@ export default function Governance({ address }: GovernanceProps) {
       </Card>
 
       {/* Lookup */}
-      <Card title="Consultar Estado de Propuesta">
+      <Card title="Consultar estado de propuesta">
         <div className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="block text-sm text-gray-400 mb-1">Proposal ID</label>
+            <label className="block text-sm text-gray-400 mb-1">ID de propuesta</label>
             <input
               type="text"
               value={lookupId}

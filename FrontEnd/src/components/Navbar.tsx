@@ -1,5 +1,7 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { type Address } from "viem";
+import { BRAND_SHORT } from "@/config/branding";
+import { isOperator } from "@/config/access";
 
 interface NavbarProps {
   address: Address | null;
@@ -13,6 +15,9 @@ function shortenAddress(addr: Address): string {
 }
 
 export default function Navbar({ address, isConnecting, onConnect, onDisconnect }: NavbarProps) {
+  const location = useLocation();
+  const showOperations = isOperator(address);
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
       isActive
@@ -20,28 +25,38 @@ export default function Navbar({ address, isConnecting, onConnect, onDisconnect 
         : "text-gray-400 hover:text-white hover:bg-gray-800"
     }`;
 
+  const inversorActive = location.pathname.startsWith("/inversor");
+
   return (
     <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-luseed-400">Luseed</span>
-            <span className="text-sm text-gray-500">Energy DAO</span>
+        <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xl font-bold text-luseed-400">{BRAND_SHORT}</span>
+            <span className="text-sm text-gray-500 hidden sm:inline">LLC</span>
           </div>
 
-          <div className="flex items-center gap-1">
-            <NavLink to="/" className={linkClass}>
+          <div className="flex items-center gap-1 overflow-x-auto">
+            <NavLink
+              to="/inversor/resumen"
+              className={inversorActive ? linkClass({ isActive: true }) : linkClass({ isActive: false })}
+            >
               Inversiones
             </NavLink>
-            <NavLink to="/admin" className={linkClass}>
-              Admin
+            <NavLink to="/managers" className={linkClass}>
+              Socios
             </NavLink>
-            <NavLink to="/governance" className={linkClass}>
+            <NavLink to="/gobernanza" className={linkClass}>
               Gobernanza
             </NavLink>
+            {showOperations && (
+              <NavLink to="/operaciones" className={linkClass}>
+                Operaciones
+              </NavLink>
+            )}
           </div>
 
-          <div>
+          <div className="shrink-0">
             {address ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-luseed-400 font-mono bg-gray-800 px-3 py-1.5 rounded-lg">
@@ -60,7 +75,7 @@ export default function Navbar({ address, isConnecting, onConnect, onDisconnect 
                 disabled={isConnecting}
                 className="bg-luseed-600 hover:bg-luseed-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
-                {isConnecting ? "Conectando..." : "Conectar Wallet"}
+                {isConnecting ? "Conectando..." : "Conectar wallet"}
               </button>
             )}
           </div>

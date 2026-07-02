@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_LUSEED_DAO_ADDRESS: string;
   readonly VITE_LUSEED_INVESTMENT_ADDRESS: string;
   readonly VITE_USDC_ADDRESS: string;
+  readonly VITE_USD_TO_COP_RATE: string;
+  readonly VITE_OPERATOR_ADDRESSES: string;
 }
 
 interface ImportMeta {

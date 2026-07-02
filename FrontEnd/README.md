@@ -1,6 +1,6 @@
-# Luseed Energy DAO — Frontend
+# VLP Hybrid DAO LLC — Frontend
 
-SPA para interactuar con los contratos de Luseed Energy DAO en Sepolia.
+SPA para interactuar con los contratos de **VLP Hybrid DAO LLC** en Sepolia. Los activos subyacentes están en Colombia; la interfaz muestra montos en **pesos colombianos (COP)** con liquidación on-chain en USDC.
 
 ## Stack
 
@@ -16,9 +16,12 @@ SPA para interactuar con los contratos de Luseed Energy DAO en Sepolia.
 
 | Ruta | Descripción |
 |------|------------|
-| `/` | **Inversor** — invertir USDC, ver notas ERC-1155, reclamar yield, redimir capital, transferir posición |
-| `/admin` | **Admin** — abrir/cerrar ventana, cambiar tasa, modificar plazo, whitelist KYC, depositar/retirar USDC |
-| `/governance` | **Gobernanza** — delegar votos, crear propuestas, votar, ejecutar, consultar estado |
+| `/inversor/resumen` | **Inversor** — resumen de cartera y estado del fondo |
+| `/inversor/invertir` | **Inversor** — nueva inversión en notas |
+| `/inversor/cartera` | **Inversor** — inversiones activas, reclamar y redimir |
+| `/managers` | **Socios** — compra de tokens de gobernanza (LST) |
+| `/gobernanza` | **Gobernanza** — delegar votos, propuestas, votación |
+| `/operaciones` | **Operaciones** — panel del operador (solo wallets autorizadas en `.env`) |
 
 ## Configuración
 
@@ -35,7 +38,10 @@ VITE_PROMISSORY_NOTE_ADDRESS=0x...
 VITE_LUSEED_TOKEN_ADDRESS=0x...
 VITE_LUSEED_DAO_ADDRESS=0x...
 VITE_USDC_ADDRESS=0x...
+VITE_USD_TO_COP_RATE=4200
 ```
+
+`VITE_USD_TO_COP_RATE` define la tasa de referencia USD→COP para mostrar inversiones en pesos. Los contratos siguen operando en USDC.
 
 ## Contratos desplegados (Sepolia)
 
@@ -68,6 +74,7 @@ npm run preview
 FrontEnd/
 ├── src/
 │   ├── config/
+│   │   ├── branding.ts       # Nombre de marca y tasa COP
 │   │   ├── client.ts         # viem publicClient + writeContract helper
 │   │   └── contracts.ts      # ABIs (human-readable) + direcciones
 │   ├── hooks/
@@ -76,6 +83,7 @@ FrontEnd/
 │   ├── components/
 │   │   ├── Navbar.tsx
 │   │   ├── Card.tsx
+│   │   ├── MoneyAmount.tsx
 │   │   └── StatusBadge.tsx
 │   ├── pages/
 │   │   ├── Investor.tsx

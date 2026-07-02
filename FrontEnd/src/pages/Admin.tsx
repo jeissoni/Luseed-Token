@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { type Address, parseUnits } from "viem";
+import { type Address } from "viem";
 import Card from "@/components/Card";
 import StatusBadge from "@/components/StatusBadge";
-import { useProtocolState, formatUsdc, formatRate, formatDuration } from "@/hooks/useContractReads";
+import { USD_TO_COP_RATE } from "@/config/branding";
+import { useProtocolState, formatCop, formatRate, formatDuration, parseCopToUsdcRaw } from "@/hooks/useContractReads";
 import { publicClient, writeContract } from "@/config/client";
 import { addresses, promissoryNoteAbi, erc20Abi } from "@/config/contracts";
 
@@ -43,9 +44,14 @@ export default function Admin({ address }: AdminProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Panel de Administración</h1>
+        <h1 className="text-2xl font-bold">Portal de Operaciones</h1>
         <StatusBadge active={protocol.investmentOpen} labelOn="Ventana Abierta" labelOff="Ventana Cerrada" />
       </div>
+
+      <p className="text-sm text-gray-400">
+        Montos en COP (activos en Colombia). Liquidación on-chain en USDC (1 USD ={" "}
+        {USD_TO_COP_RATE.toLocaleString("es-CO")} COP).
+      </p>
 
       {txStatus && (
         <div className={`p-3 rounded-lg text-sm ${txStatus.startsWith("Error") ? "bg-red-900/30 text-red-400" : "bg-luseed-900/30 text-luseed-400"}`}>
@@ -55,7 +61,7 @@ export default function Admin({ address }: AdminProps) {
 
       {!address && (
         <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4 text-yellow-400 text-sm">
-          Conecta tu wallet de administrador para operar.
+          Conecta tu wallet de operador para gestionar el protocolo.
         </div>
       )}
 
@@ -63,8 +69,12 @@ export default function Admin({ address }: AdminProps) {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card title="Tasa"><p className="text-xl font-bold text-luseed-400">{formatRate(protocol.currentRate)}</p></Card>
         <Card title="Plazo"><p className="text-xl font-bold">{formatDuration(protocol.termDuration)}</p></Card>
-        <Card title="Invertido"><p className="text-xl font-bold">${formatUsdc(protocol.totalInvested)}</p></Card>
-        <Card title="USDC en Contrato"><p className="text-xl font-bold">${formatUsdc(protocol.contractUsdcBalance)}</p></Card>
+        <Card title="Invertido">
+          <p className="text-xl font-bold text-luseed-400">{formatCop(protocol.totalInvested)}</p>
+        </Card>
+        <Card title="Fondos en Contrato">
+          <p className="text-xl font-bold">{formatCop(protocol.contractUsdcBalance)}</p>
+        </Card>
         <Card title="Notas Emitidas"><p className="text-xl font-bold">{(protocol.nextNoteId - 1n).toString()}</p></Card>
       </div>
 
@@ -171,7 +181,7 @@ export default function Admin({ address }: AdminProps) {
       </Card>
 
       {/* Whitelist */}
-      <Card title="Whitelist KYC">
+      <Card title="Lista blanca KYC">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Dirección</label>
@@ -215,10 +225,10 @@ export default function Admin({ address }: AdminProps) {
       </Card>
 
       {/* Deposit Yield Funds */}
-      <Card title="Depositar USDC para Rendimientos">
+      <Card title="Depositar Fondos para Rendimientos">
         <div className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="block text-sm text-gray-400 mb-1">Monto (USDC)</label>
+            <label className="block text-sm text-gray-400 mb-1">Monto (COP)</label>
             <input
               type="number"
               value={depositAmount}
@@ -228,7 +238,7 @@ export default function Admin({ address }: AdminProps) {
           </div>
           <button
             onClick={async () => {
-              const amount = parseUnits(depositAmount, 6);
+              const amount = parseCopToUsdcRaw(depositAmount);
               setBusy(true);
               setTxStatus("Aprobando USDC...");
               try {
@@ -269,7 +279,7 @@ export default function Admin({ address }: AdminProps) {
       </Card>
 
       {/* Withdraw */}
-      <Card title="Retirar USDC Excedente">
+      <Card title="Retirar Fondos Excedentes">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Destinatario</label>
@@ -282,7 +292,7 @@ export default function Admin({ address }: AdminProps) {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Monto (USDC)</label>
+            <label className="block text-sm text-gray-400 mb-1">Monto (COP)</label>
             <input
               type="number"
               value={withdrawAmount}
@@ -298,7 +308,7 @@ export default function Admin({ address }: AdminProps) {
                   address: addresses.promissoryNote,
                   abi: promissoryNoteAbi,
                   functionName: "withdrawExcessUsdc",
-                  args: [withdrawAddr as Address, parseUnits(withdrawAmount, 6)],
+                  args: [withdrawAddr as Address, parseCopToUsdcRaw(withdrawAmount)],
                 })
               )
             }
