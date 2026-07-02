@@ -1,0 +1,61 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "FrontEnd/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: FrontEnd/package-lock.json
+
+      - name: Install
+        working-directory: FrontEnd
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        working-directory: FrontEnd
+        env:
+          VITE_RPC_URL: ${{ vars.VITE_RPC_URL }}
+          VITE_PROMISSORY_NOTE_ADDRESS: ${{ vars.VITE_PROMISSORY_NOTE_ADDRESS }}
+          VITE_LUSEED_TOKEN_ADDRESS: ${{ vars.VITE_LUSEED_TOKEN_ADDRESS }}
+          VITE_LUSEED_DAO_ADDRESS: ${{ vars.VITE_LUSEED_DAO_ADDRESS }}
+          VITE_LUSEED_INVESTMENT_ADDRESS: ${{ vars.VITE_LUSEED_INVESTMENT_ADDRESS }}
+          VITE_USDC_ADDRESS: ${{ vars.VITE_USDC_ADDRESS }}
+          VITE_USD_TO_COP_RATE: ${{ vars.VITE_USD_TO_COP_RATE }}
+          VITE_OPERATOR_ADDRESSES: ${{ vars.VITE_OPERATOR_ADDRESSES }}
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: FrontEnd/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
