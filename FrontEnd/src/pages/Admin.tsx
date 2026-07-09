@@ -5,7 +5,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { USD_TO_COP_RATE } from "@/config/branding";
 import { useProtocolState, formatCop, formatRate, formatDuration, parseCopToUsdcRaw } from "@/hooks/useContractReads";
 import { publicClient, writeContract } from "@/config/client";
-import { addresses, promissoryNoteAbi, erc20Abi } from "@/config/contracts";
+import { addresses, promissoryNoteAbi, erc20Abi, mockUsdcAbi } from "@/config/contracts";
 
 interface AdminProps {
   address: Address | null;
@@ -24,6 +24,8 @@ export default function Admin({ address }: AdminProps) {
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAddr, setWithdrawAddr] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [faucetMintAddr, setFaucetMintAddr] = useState("");
+  const [faucetMintAmount, setFaucetMintAmount] = useState("100000");
 
   async function exec(label: string, fn: () => Promise<`0x${string}`>) {
     setBusy(true);
@@ -275,6 +277,77 @@ export default function Admin({ address }: AdminProps) {
           >
             Depositar
           </button>
+        </div>
+      </Card>
+
+      {/* MockUSDC — acreditar USDC de prueba */}
+      <Card title="Acreditar USDC de prueba (MockUSDC)">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-400">
+            Mint público en testnet. Los usuarios pueden imprimir USDC desde el banner en
+            Inversiones; aquí puedes acreditar a otra wallet si lo necesitas.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Destinatario</label>
+              <input
+                type="text"
+                value={faucetMintAddr}
+                onChange={(e) => setFaucetMintAddr(e.target.value)}
+                placeholder="0x..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luseed-500"
+              />
+              {address && (
+                <button
+                  type="button"
+                  onClick={() => setFaucetMintAddr(address)}
+                  className="text-xs text-luseed-400 hover:underline mt-1"
+                >
+                  Usar mi wallet
+                </button>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Monto (USDC)</label>
+              <input
+                type="number"
+                value={faucetMintAmount}
+                onChange={(e) => setFaucetMintAmount(e.target.value)}
+                placeholder="100000"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luseed-500"
+              />
+              <div className="flex gap-2 mt-1">
+                {["10000", "100000", "500000"].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setFaucetMintAmount(preset)}
+                    className="text-xs text-gray-500 hover:text-luseed-400"
+                  >
+                    {Number(preset).toLocaleString()}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const amount = BigInt(Math.round(parseFloat(faucetMintAmount) * 1e6));
+                exec("Acreditando USDC...", () =>
+                  writeContract({
+                    account: address!,
+                    address: addresses.usdc,
+                    abi: mockUsdcAbi,
+                    functionName: "mint",
+                    args: [faucetMintAddr as Address, amount],
+                  })
+                );
+              }}
+              disabled={busy || !address || !faucetMintAddr || !faucetMintAmount}
+              className="bg-luseed-600 hover:bg-luseed-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+            >
+              Acreditar USDC
+            </button>
+          </div>
         </div>
       </Card>
 

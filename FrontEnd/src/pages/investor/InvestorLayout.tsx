@@ -3,6 +3,7 @@ import { type Address } from "viem";
 import StatusBadge from "@/components/StatusBadge";
 import TabNav from "@/components/TabNav";
 import TxBanner from "@/components/TxBanner";
+import TestUsdcFaucet from "@/components/TestUsdcFaucet";
 import { USD_TO_COP_RATE } from "@/config/branding";
 import { InvestorPortalProvider, useInvestorPortal } from "@/contexts/InvestorPortalContext";
 
@@ -17,7 +18,7 @@ interface InvestorLayoutProps {
 }
 
 function InvestorLayoutContent() {
-  const { protocol, txStatus } = useInvestorPortal();
+  const { address, protocol, txStatus } = useInvestorPortal();
 
   return (
     <div className="space-y-6">
@@ -32,6 +33,7 @@ function InvestorLayoutContent() {
       </p>
 
       <TabNav tabs={INVESTOR_TABS} />
+      <TestUsdcFaucet address={address} compact />
       <TxBanner message={txStatus} />
       <Outlet />
     </div>

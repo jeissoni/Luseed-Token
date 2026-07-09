@@ -55,6 +55,14 @@ export const erc20Abi = parseAbi([
   "function transfer(address to, uint256 value) returns (bool)",
 ]);
 
+/** ABI del MockUSDC en testnet (mint público). */
+export const mockUsdcAbi = parseAbi([
+  "function mint(address to, uint256 amount)",
+  "function balanceOf(address account) view returns (uint256)",
+]);
+
+export const MOCK_USDC_MINT_AMOUNT = 100_000n * 10n ** 6n; // 100k USDC por reclamo
+
 export const luseedTokenAbi = parseAbi([
   "function isAuthorized(address account) view returns (bool)",
   "function setAuthorized(address account, bool authorized)",
