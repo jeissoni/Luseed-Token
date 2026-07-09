@@ -17,7 +17,7 @@ contract DeployMockUSDC is Script {
 
         vm.startBroadcast(pk);
 
-        MockUSDC usdc = new MockUSDC(deployer);
+        MockUSDC usdc = new MockUSDC();
         usdc.mint(deployer, initialMint);
 
         vm.stopBroadcast();

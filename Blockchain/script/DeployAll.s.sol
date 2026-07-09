@@ -41,7 +41,7 @@ contract DeployAll is Script {
         // 0. USDC — deploy mock on testnet, use existing on mainnet
         address usdc;
         if (isTestnet) {
-            MockUSDC mockUsdc = new MockUSDC(deployer);
+            MockUSDC mockUsdc = new MockUSDC();
             mockUsdc.mint(deployer, 10_000_000e6); // 10M USDC
             usdc = address(mockUsdc);
             console.log("[0/4] MockUSDC deployed:", usdc);
