@@ -1,7 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { type Address } from "viem";
 import { BRAND_SHORT } from "@/config/branding";
-import { isOperator } from "@/config/access";
+import { ROLE_LABELS } from "@/config/roles";
+import { useUserRolesContext } from "@/contexts/UserRolesContext";
 
 interface NavbarProps {
   address: Address | null;
@@ -14,9 +15,16 @@ function shortenAddress(addr: Address): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+const NAV_ITEMS = [
+  { to: "/inversor/resumen", label: "Inversiones", role: "investor" as const, match: "/inversor" },
+  { to: "/managers", label: "Socios", role: "manager" as const, match: "/managers" },
+  { to: "/gobernanza", label: "Gobernanza", role: "manager" as const, match: "/gobernanza" },
+  { to: "/operaciones", label: "Operaciones", role: "operator" as const, match: "/operaciones" },
+];
+
 export default function Navbar({ address, isConnecting, onConnect, onDisconnect }: NavbarProps) {
   const location = useLocation();
-  const showOperations = isOperator(address);
+  const { hasRole, roles, loading } = useUserRolesContext();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -25,40 +33,57 @@ export default function Navbar({ address, isConnecting, onConnect, onDisconnect 
         : "text-gray-400 hover:text-white hover:bg-gray-800"
     }`;
 
-  const inversorActive = location.pathname.startsWith("/inversor");
+  const visibleNav = NAV_ITEMS.filter((item) => hasRole(item.role));
 
   return (
     <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xl font-bold text-luseed-400">{BRAND_SHORT}</span>
+            <NavLink to="/" className="text-xl font-bold text-luseed-400 hover:text-luseed-300 transition-colors">
+              {BRAND_SHORT}
+            </NavLink>
             <span className="text-sm text-gray-500 hidden sm:inline">LLC</span>
           </div>
 
           <div className="flex items-center gap-1 overflow-x-auto">
-            <NavLink
-              to="/inversor/resumen"
-              className={inversorActive ? linkClass({ isActive: true }) : linkClass({ isActive: false })}
-            >
-              Inversiones
-            </NavLink>
-            <NavLink to="/managers" className={linkClass}>
-              Socios
-            </NavLink>
-            <NavLink to="/gobernanza" className={linkClass}>
-              Gobernanza
-            </NavLink>
-            {showOperations && (
-              <NavLink to="/operaciones" className={linkClass}>
-                Operaciones
+            {address && loading && (
+              <span className="text-xs text-gray-500 px-2">Verificando roles...</span>
+            )}
+            {visibleNav.map((item) => {
+              const isActive = location.pathname.startsWith(item.match);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={isActive ? linkClass({ isActive: true }) : linkClass({ isActive: false })}
+                >
+                  {item.label}
+                </NavLink>
+              );
+            })}
+            {address && !loading && visibleNav.length === 0 && (
+              <NavLink to="/sin-acceso" className={linkClass}>
+                Sin acceso
               </NavLink>
             )}
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 flex items-center gap-3">
+            {address && roles.length > 0 && (
+              <div className="hidden md:flex items-center gap-1">
+                {roles.map((role) => (
+                  <span
+                    key={role}
+                    className="text-[10px] uppercase tracking-wide text-luseed-300 bg-luseed-900/40 border border-luseed-800 px-2 py-0.5 rounded"
+                  >
+                    {ROLE_LABELS[role]}
+                  </span>
+                ))}
+              </div>
+            )}
             {address ? (
-              <div className="flex items-center gap-3">
+              <>
                 <span className="text-sm text-luseed-400 font-mono bg-gray-800 px-3 py-1.5 rounded-lg">
                   {shortenAddress(address)}
                 </span>
@@ -68,7 +93,7 @@ export default function Navbar({ address, isConnecting, onConnect, onDisconnect 
                 >
                   Desconectar
                 </button>
-              </div>
+              </>
             ) : (
               <button
                 onClick={onConnect}
